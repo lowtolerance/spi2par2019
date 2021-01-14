@@ -13,7 +13,7 @@
 
 //HD44780 LCD Setup
 const uint8_t rs = 18, en = 8, d4 = 7, d5 = 6, d6 = 5, d7 = 4; //HD44780 compliant LCD display pin numbers
-const uint8_t ss_in = 17, miso = 14, mosi = 16, sck = 15, ss_out = A2; //SPI pin numbers, ss_in is the CS for the slave. As Xenium doesn't seem to use CS, ss_out is connected to ss_in on the PCB to manually trigger CS.
+const uint8_t mosi = 16, sck = 15; //SPI pin numbers, ss_in is the CS for the slave. As Xenium doesn't seem to use CS, ss_out is connected to ss_in on the PCB to manually trigger CS.
 const uint8_t i2c_sda = 2, i2c_scl = 3; //i2c pins for SMBus
 const uint8_t backlightPin = 10, contrastPin = 9; //Pin nubmers for backlight and contrast. Must be PWM enabled
 uint8_t cursorPosCol = 0, cursorPosRow = 0; //Track the position of the cursor
@@ -45,8 +45,6 @@ ISR (SPI_STC_vect) {
 }
 
 void setup() {
-  pinMode(ss_out, OUTPUT);
-  digitalWrite(ss_out, HIGH); //Force SPI CS signal high while we setup
   Serial.begin(9600);
   delay(5);
   for (uint8_t i = 0; i < 8; i++) {
@@ -92,8 +90,6 @@ void setup() {
       spiReady = true;
     }
   }
-  digitalWrite(ss_out, LOW); //SPI Slave is ready to receive data
-
 }
 
 
@@ -101,7 +97,7 @@ void loop() {
   //SPI to Parallel Conversion State Machine
   //One completion of processing command, set the buffer data value to -1
   //to indicate processing has been completed.
-
+  Serial.print('.');
   if (QueueRxPos != QueuePos) {
     switch (RxQueue[(uint8_t)QueuePos]) {
       case -1:
